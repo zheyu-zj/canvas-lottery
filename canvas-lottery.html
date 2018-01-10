@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<title>canvas</title>
+	<style>
+	*{
+		margin:0;
+		padding:0;
+	}
+	html,body{
+		width: 100%;
+		height: 100%;
+	}
+	canvas{
+		width: 100%;
+		height: 100%;
+	}
+	</style>
+	<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+	<script>
+		$(function(){
+			var canvas = $('#canvas'),
+				ctx = canvas.get(0).getContext("2d");
+			// 浏览器大小调整canvas大小
+	    	function resizeCanvas(){
+	    		canvas.attr("width", $(window).get(0).innerWidth);
+	    		canvas.attr("height", $(window).get(0).innerHeight);
+	    		let ball = {
+	    			textLen:['一等奖','二等奖','三等奖','四等奖','五等奖','六等奖','器等奖','吧等奖','就等奖','是等奖'],
+	    			outside_radiuas:200,
+	    			inside_radiuas:0,
+	    			startRadian:0,
+	    			text_radiuas:160,
+			        duration:4000,     // 旋转事件
+			        velocity:10,       // 旋转速率
+			        spinningTime:0,    // 旋转当前时间
+			        spinTotalTime:10000,       // 旋转时间总长
+			        spinningChange:15,      // 旋转变化值的峰值
+	    			draw:function(){
+						ctx.clearRect(0,0, canvas.width(), canvas.height());
+						let awardRadian=(Math.PI * 2) / this.textLen.length;
+	    				for (let i = 0; i < this.textLen.length; i++) {
+	    					let _startRadian = this.startRadian + awardRadian * i,
+	    						_endRadian = _startRadian + awardRadian;
+							ctx.save();
+						    if (i % 2 === 0) {
+						    	ctx.fillStyle = 'red'
+						    }else{
+						    	ctx.fillStyle = 'blue'
+						    }
+						    ctx.beginPath();
+							ctx.shadowBlur=20;
+							ctx.shadowColor="black";
+						    ctx.arc(canvas.width() / 2, canvas.height() / 2, this.outside_radiuas, _startRadian, _endRadian, false);
+						    ctx.arc(canvas.width() / 2, canvas.height() / 2, this.inside_radiuas, _endRadian, _startRadian, true);
+						    ctx.fill();
+							ctx.restore()
+				            ctx.save();
+				            ctx.font = 'bold 16px Helvetica, Arial';
+				            ctx.fillStyle = '#FFF';
+				            ctx.translate(
+				                canvas.width() / 2 + Math.cos(_startRadian + awardRadian / 2) * this.text_radiuas,
+				                canvas.height() / 2 + Math.sin(_startRadian + awardRadian / 2) * this.text_radiuas
+				            );
+				            ctx.rotate(_startRadian + awardRadian / 2 + Math.PI / 2);
+				            ctx.fillText(this.textLen[i], -ctx.measureText(this.textLen[i]).width / 2, 0);
+				            ctx.restore();
+	    				}
+					    ctx.beginPath();
+			            ctx.fillStyle='yellow';
+			            ctx.strokeStyle = 'yellow';
+					    ctx.moveTo(canvas.width() / 2 - 8, canvas.height() / 2 - 50);
+					    ctx.lineTo(canvas.width() / 2, canvas.height() / 2 - 70);
+					    ctx.lineTo(canvas.width() / 2 + 8, canvas.height() / 2 - 50);
+					    ctx.fill();
+
+					    ctx.beginPath();
+						ctx.arc(canvas.width() / 2, canvas.height() / 2,50,0,2*Math.PI);
+					    ctx.fill();
+			            ctx.font = 'bold 24px Helvetica, Arial';
+			            ctx.fillStyle = '#000';
+						ctx.textBaseline="middle";
+			            ctx.fillText('抽奖',canvas.width() / 2 - ctx.measureText('抽奖').width / 2,canvas.height() / 2);
+	    			}
+	    		}
+    			/**
+				 * 缓动函数，由快到慢
+				 * @param {Num} t 当前时间
+				 * @param {Num} b 初始值
+				 * @param {Num} c 变化值
+				 * @param {Num} d 持续时间
+				 */
+				function easeOut(t, b, c, d) {
+				    if ((t /= d / 2) < 1) return c / 2 * t * t + b;
+				    return -c / 2 * ((--t) * (t - 2) - 1) + b;
+				};
+			    function rotateWheel() {
+			        // 当 当前时间 大于 总时间，停止旋转，并返回当前值
+			        ball.spinningTime += 20;
+			        if (ball.spinningTime >= ball.spinTotalTime) {
+			            console.log(1); return
+			        }
+			        let _spinningChange = (ball.spinningChange - easeOut(ball.spinningTime, 0, ball.spinningChange, ball.spinTotalTime)) * (Math.PI / 180);
+			        ball.startRadian += _spinningChange
+
+			        ball.draw();
+			        window.requestAnimationFrame(rotateWheel);
+			    }
+	    		function draw(){
+				  rotateWheel()
+	    		};
+	    		draw()
+				// let raf;
+				// let ball = {
+				// 		x: Math.random()*canvas.width(),
+				// 		y: Math.random()*canvas.height(),
+				//   	vx: 10,
+				//   	vy: 5,
+				//   	leng:100,
+				//   	radius: 25,
+				//   	color: 'red',
+				//   	draw: function() {
+				// 	    ctx.beginPath();
+				// 		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
+				// 	    ctx.closePath();
+				// 	    ctx.fillStyle = this.color;
+				// 	    ctx.fill();
+				//   	}
+				// };
+				// function draw() {
+				//   if (ball.y + ball.vy > canvas.height() || ball.y + ball.vy < 0) {
+				//   ball.vy = -ball.vy;
+				// }
+				// if (ball.x + ball.vx > canvas.width() || ball.x + ball.vx < 0) {
+				//   ball.vx = -ball.vx;
+				// }
+				//   ctx.clearRect(0,0, canvas.width(), canvas.height());
+				//   ball.draw();
+				//   ball.x += ball.vx;
+				//   ball.y += ball.vy;
+				//   raf = window.requestAnimationFrame(draw);
+				// }
+				// $(window).on('mouseover',canvas, function(e){
+				//   raf = window.requestAnimationFrame(draw);
+				// });
+
+				// $(window).on('mouseout',canvas, function(e){
+				//   window.cancelAnimationFrame(raf);
+				// });
+				// ball.draw();
+	    	};
+	    	resizeCanvas();
+			$(window).resize(resizeCanvas);
+		})
+	</script>
+</body>
+</html>
